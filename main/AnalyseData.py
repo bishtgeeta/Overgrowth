@@ -13,12 +13,12 @@ import myCythonFunc
 
 
 #########################################################
-inputDir = r'Z:\Geeta-Share\bipyramid assembly\20170328-018-output'
-fileName = r'Z:\Geeta-Share\bipyramid assembly\20170328-018-output\output\imgDataNM - Copy.dat'
+inputDir = r'W:\geeta\Overgrowth\High Temperature\20170106-017'
+fileName = r'W:\geeta\Overgrowth\High Temperature\20170106-017\output\imgDataNM.dat'
 outputDir = inputDir
-gImg = cv2.imread(r'Z:\Geeta-Share\bipyramid assembly\20170328-018-output\output\dataProcessing\gImgRawStack\000001.png',0)
+gImg = cv2.imread(r'W:\geeta\Overgrowth\High Temperature\20170106-017\output\dataProcessing\gImgRawStack\000001.png',0)
 imgRow, imgCol = gImg.shape
-pixInNM = 1.09018554
+pixInNM = 0.26345214
 skiprows=0
 measureInPix=False
 #########################################################
@@ -27,7 +27,7 @@ hp = trajectoryAnalysis(fileName, outputDir, pixInNM, imgRow, imgCol, skiprows, 
 
 #hp.plotTrajectory(offset=True)
 #hp.plotTrajectory()
-hp.plotTrajectoryCMAP(gImg, frame=1, particleList=[1,2], image=True)
+#hp.plotTrajectoryCMAP(gImg, frame=1, particleList=[1,2], image=True)
 #hp.plotTrajectory3d()
 
 ##hp.plotXY()
@@ -37,7 +37,7 @@ hp.plotTrajectoryCMAP(gImg, frame=1, particleList=[1,2], image=True)
 #hp.plotAvgRadiusvsTime()
 #hp.plotAvgAreavsTime()
 #hp.plotParticleRadiusvsTime()
-#hp.plotParticleAreavsTime()
+hp.plotParticleAreavsTime()
 #hp.plotNumberofPoints()
 ##hp.etchRate(startTime=2.5)
 

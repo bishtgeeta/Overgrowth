@@ -97,8 +97,8 @@ if (rank==0):
 #if (rank==0):
     #print "Inverting the image and performing background subtraction"
 #invertFlag=True
-#bgSubFlag= False; bgSubSigmaTHT=2; radiusTHT=15
-#blurFlag=True; sigma=4
+#bgSubFlag= True; bgSubSigmaTHT=2; radiusTHT=30
+#blurFlag=True; sigma=2
 
 #if (rank==0):
     #fp = h5py.File(outputFile, 'r+')
@@ -107,7 +107,7 @@ if (rank==0):
 #[row,col,numFrames,frameList] = misc.getVitals(fp)
 #procFrameList = numpy.array_split(frameList,size)
 
-#for frame in procFrameList[rank]:
+#for frame in tqdm(procFrameList[rank]):
     #gImgProc = fp['/dataProcessing/gImgRawStack/'+str(frame).zfill(zfillVal)].value
     #if (invertFlag==True):
         #gImgProc = imageProcess.invertImage(gImgProc)
@@ -133,31 +133,32 @@ if (rank==0):
 #######################################################################
 # IMAGE SEGMENTATION
 #######################################################################
-if (rank==0):
-    print "Performing segmentation for all the frames"
+#if (rank==0):
+    #print "Performing segmentation for all the frames"
     
-fp = h5py.File(outputFile, 'r')
-[row,col,numFrames,frameList] = misc.getVitals(fp)
-procFrameList = numpy.array_split(frameList,size)
+#fp = h5py.File(outputFile, 'r')
+#[row,col,numFrames,frameList] = misc.getVitals(fp)
+#procFrameList = numpy.array_split(frameList,size)
 
-areaRange = numpy.array([2000,10000], dtype='float64')
+#areaRange = numpy.array([1500,10000], dtype='float64')
 
-for frame in tqdm(procFrameList[rank]):
-    gImgRaw = fp['/dataProcessing/gImgRawStack/'+str(frame).zfill(zfillVal)].value
-    gImgNorm = imageProcess.normalize(gImgRaw,min=0,max=230)
-    gImgProc = fp['/dataProcessing/processedStack/'+str(frame).zfill(zfillVal)].value
-    bImg = gImgProc>=imageProcess.otsuThreshold(gImgProc)
+#for frame in tqdm(procFrameList[rank]):
+    #gImgRaw = fp['/dataProcessing/gImgRawStack/'+str(frame).zfill(zfillVal)].value
+    #gImgNorm = imageProcess.normalize(gImgRaw,min=0,max=230)
+    #gImgProc = fp['/dataProcessing/processedStack/'+str(frame).zfill(zfillVal)].value
+    ##bImg = gImgProc>=imageProcess.otsuThreshold(gImgProc)
     #bImg = gImgProc>=myCythonFunc.threshold_kapur(gImgProc.flatten())
-    bImg = imageProcess.binary_erosion(bImg, iterations=15)
-    bImg = imageProcess.binary_dilation(bImg, iterations=15)
-    bImg = myCythonFunc.areaThreshold(bImg.astype('uint8'), areaRange=areaRange)
+    ##bImg = imageProcess.binary_erosion(bImg, iterations=15)
+    ##bImg = imageProcess.binary_dilation(bImg, iterations=15)
+    #bImg = myCythonFunc.areaThreshold(bImg.astype('uint8'), areaRange=areaRange)
+    ##bImg = imageProcess.binary_closing(bImg, iterations=6)
     
-    bImg = imageProcess.convexHull(bImg)
-    bImgBdry = imageProcess.normalize(imageProcess.boundary(bImg))
-    finalImage = numpy.column_stack((numpy.maximum(gImgNorm,bImgBdry), gImgNorm))
-    cv2.imwrite(outputDir+'/segmentation/result/'+str(frame).zfill(zfillVal)+'.png', finalImage)
-fp.flush(), fp.close()
-comm.Barrier()
+    ##bImg = imageProcess.convexHull(bImg)
+    #bImgBdry = imageProcess.normalize(imageProcess.boundary(bImg))
+    #finalImage = numpy.column_stack((numpy.maximum(gImgNorm,bImgBdry), gImgNorm))
+    #cv2.imwrite(outputDir+'/segmentation/result/'+str(frame).zfill(zfillVal)+'.png', finalImage)
+#fp.flush(), fp.close()
+#comm.Barrier()
 #######################################################################
 
 
@@ -221,7 +222,7 @@ comm.Barrier()
 #######################################################################
 # REMOVING UNWANTED PARTICLES
 ########################################################################
-#keepList = [1,2,3,4,9,10,12,13,14,15,16]
+#keepList = [1]
 #removeList = []
 
 #if (rank==0):
@@ -311,61 +312,61 @@ comm.Barrier()
 #######################################################################
 # FINDING OUT THE MEASURES FOR TRACKED PARTICLES
 ########################################################################
-#if (rank==0):
-    #print "Finding measures for tracked particles"
+if (rank==0):
+    print "Finding measures for tracked particles"
 
-#fp = h5py.File(outputFile, 'r')
-#[row,col,numFrames,frameList] = misc.getVitals(fp)
-#particleList = fp.attrs['particleList']
-#zfillVal = fp.attrs['zfillVal']
-#procFrameList = numpy.array_split(frameList,size)
-#fps = fp.attrs['fps']
-#pixInNM = fp.attrs['pixInNM']
+fp = h5py.File(outputFile, 'r')
+[row,col,numFrames,frameList] = misc.getVitals(fp)
+particleList = fp.attrs['particleList']
+zfillVal = fp.attrs['zfillVal']
+procFrameList = numpy.array_split(frameList,size)
+fps = fp.attrs['fps']
+pixInNM = fp.attrs['pixInNM']
 
-#outFile = open(str(rank)+'.dat','wb')
+outFile = open(str(rank)+'.dat','wb')
 
-##particleList = [1,2]
+#particleList = [1,2]
 
-#area=True
-#perimeter=True
-#circularity=False
-#pixelList=False
-#bdryPixelList=False
-#centroid=True
-#intensityList=False
-#sumIntensity=False
-#effRadius=False
-#radius=False
-#circumRadius=False
-#inRadius=False
-#radiusOFgyration=False
-#orientation=True
+area=True
+perimeter=True
+circularity=False
+pixelList=False
+bdryPixelList=False
+centroid=True
+intensityList=False
+sumIntensity=False
+effRadius=False
+radius=False
+circumRadius=False
+inRadius=False
+radiusOFgyration=False
+orientation=True
 
-#for frame in procFrameList[rank]:
-    #labelImg = fp['/segmentation/labelStack/'+str(frame).zfill(zfillVal)].value
-    #gImgRaw = fp['/dataProcessing/gImgRawStack/'+str(frame).zfill(zfillVal)].value
-    #outFile.write("%f " %(1.0*frame/fps))
-    #for particle in particleList:
-        #bImg = labelImg==particle
-        #if (bImg.max() == True):
-            #label, numLabel, dictionary = imageProcess.regionProps(bImg, gImgRaw, structure=structure, centroid=centroid, area=area, perimeter=perimeter,orientation=orientation)
-            #outFile.write("%f %f %f %f %f " %(dictionary['centroid'][0][1]*pixInNM, (row-dictionary['centroid'][0][0])*pixInNM, dictionary['area'][0]*pixInNM*pixInNM, dictionary['perimeter'][0]*pixInNM, dictionary['orientation'][0]))
-        #else:
-            #outFile.write("nan nan nan nan nan ")
-    #outFile.write("\n")
-#outFile.close()
-#fp.flush(), fp.close()
-#comm.Barrier()
+for frame in procFrameList[rank]:
+    labelImg = fp['/segmentation/labelStack/'+str(frame).zfill(zfillVal)].value
+    gImgRaw = fp['/dataProcessing/gImgRawStack/'+str(frame).zfill(zfillVal)].value
+    outFile.write("%f " %(1.0*frame/fps))
+    for particle in particleList:
+        bImg = labelImg==particle
+        if (bImg.max() == True):
+            label, numLabel, dictionary = imageProcess.regionProps(bImg, gImgRaw, structure=structure, centroid=centroid, area=area, perimeter=perimeter,orientation=orientation)
+            outFile.write("%f %f %f %f %f " %(dictionary['centroid'][0][1]*pixInNM, (row-dictionary['centroid'][0][0])*pixInNM, dictionary['area'][0]*pixInNM*pixInNM, dictionary['perimeter'][0]*pixInNM, dictionary['orientation'][0]))
+        else:
+            outFile.write("nan nan nan nan nan ")
+    outFile.write("\n")
+outFile.close()
+fp.flush(), fp.close()
+comm.Barrier()
 
-#if (rank==0):
-    #for r in range(size):
-        #if (r==0):
-            #measures = numpy.loadtxt(str(r)+'.dat')
-        #else:
-            #measures = numpy.row_stack((measures,numpy.loadtxt(str(r)+'.dat')))
-        #fileIO.delete(str(r)+'.dat')
-    #measures = measures[numpy.argsort(measures[:,0])]
-    #numpy.savetxt(outputDir+'/imgDataNM.dat', measures, fmt='%.6f')
+if (rank==0):
+    for r in range(size):
+        if (r==0):
+            measures = numpy.loadtxt(str(r)+'.dat')
+        else:
+            measures = numpy.row_stack((measures,numpy.loadtxt(str(r)+'.dat')))
+        fileIO.delete(str(r)+'.dat')
+    measures = measures[numpy.argsort(measures[:,0])]
+    numpy.savetxt(outputDir+'/imgDataNM.dat', measures, fmt='%.6f')
 #######################################################################
 
 
