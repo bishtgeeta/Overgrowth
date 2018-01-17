@@ -165,57 +165,57 @@ if (rank==0):
 #######################################################################
 # CREATE BINARY IMAGES INTO HDF5 FILE
 #######################################################################
-if (rank==0):
-    print "Creating binary images and writing into h5 file"
+#if (rank==0):
+    #print "Creating binary images and writing into h5 file"
     
-if (rank==0):
-    fp = h5py.File(outputFile, 'r+')
-else:
-    fp = h5py.File(outputFile, 'r')
-[row,col,numFrames,frameList] = misc.getVitals(fp)
-procFrameList = numpy.array_split(frameList,size)
+#if (rank==0):
+    #fp = h5py.File(outputFile, 'r+')
+#else:
+    #fp = h5py.File(outputFile, 'r')
+#[row,col,numFrames,frameList] = misc.getVitals(fp)
+#procFrameList = numpy.array_split(frameList,size)
 
-for frame in tqdm(procFrameList[rank]):
-    bImg = cv2.imread(outputDir+'/segmentation/result/'+str(frame).zfill(zfillVal)+'.png',0)[0:row,0:col]
-    bImg = bImg==255
-    bImg = imageProcess.fillHoles(bImg)
-    bImg = imageProcess.binary_opening(bImg, iterations=1)
-    numpy.save(outputDir+'/segmentation/result/'+str(frame).zfill(zfillVal)+'.npy', bImg)
+#for frame in tqdm(procFrameList[rank]):
+    #bImg = cv2.imread(outputDir+'/segmentation/result/'+str(frame).zfill(zfillVal)+'.png',0)[0:row,0:col]
+    #bImg = bImg==255
+    #bImg = imageProcess.fillHoles(bImg)
+    #bImg = imageProcess.binary_opening(bImg, iterations=1)
+    #numpy.save(outputDir+'/segmentation/result/'+str(frame).zfill(zfillVal)+'.npy', bImg)
    
-comm.barrier()
-if (rank==0):
-    for frame in frameList:
-        bImg = numpy.load(outputDir+'/segmentation/result/'+str(frame).zfill(zfillVal)+'.npy')
-        fileIO.writeH5Dataset(fp,'/segmentation/bImgStack/'+str(frame).zfill(zfillVal),bImg)
-        fileIO.delete(outputDir+'/segmentation/result/'+str(frame).zfill(zfillVal)+'.npy')
+#comm.barrier()
+#if (rank==0):
+    #for frame in frameList:
+        #bImg = numpy.load(outputDir+'/segmentation/result/'+str(frame).zfill(zfillVal)+'.npy')
+        #fileIO.writeH5Dataset(fp,'/segmentation/bImgStack/'+str(frame).zfill(zfillVal),bImg)
+        #fileIO.delete(outputDir+'/segmentation/result/'+str(frame).zfill(zfillVal)+'.npy')
         
-fp.flush(), fp.close()
-comm.Barrier()
+#fp.flush(), fp.close()
+#comm.Barrier()
 ######################################################################
 
 #######################################################################
 # LABELLING PARTICLES
-#######################################################################
-centerDispRange = [50,50]
-perAreaChangeRange = [80,80]
-missFramesTh = 10
+########################################################################
+#centerDispRange = [50,50]
+#perAreaChangeRange = [80,80]
+#missFramesTh = 10
     
-if (rank==0):
-    print "Labelling segmented particles"
-    fp = h5py.File(outputFile, 'r+')
-    [row,col,numFrames,frameList] = misc.getVitals(fp)
-    maxID, occurenceFrameList = tracking.labelParticles(fp, centerDispRange=centerDispRange, perAreaChangeRange=perAreaChangeRange, missFramesTh=missFramesTh, structure=structure)
-    fp.attrs['particleList'] = range(1,maxID+1)
-    numpy.savetxt(outputDir+'/frameOccurenceList.dat',numpy.column_stack((fp.attrs['particleList'],occurenceFrameList)),fmt='%d')
-    fp.flush(), fp.close()
-comm.Barrier()
+#if (rank==0):
+    #print "Labelling segmented particles"
+    #fp = h5py.File(outputFile, 'r+')
+    #[row,col,numFrames,frameList] = misc.getVitals(fp)
+    #maxID, occurenceFrameList = tracking.labelParticles(fp, centerDispRange=centerDispRange, perAreaChangeRange=perAreaChangeRange, missFramesTh=missFramesTh, structure=structure)
+    #fp.attrs['particleList'] = range(1,maxID+1)
+    #numpy.savetxt(outputDir+'/frameOccurenceList.dat',numpy.column_stack((fp.attrs['particleList'],occurenceFrameList)),fmt='%d')
+    #fp.flush(), fp.close()
+#comm.Barrier()
 
-if (rank==0):
-    print "Generating images with labelled particles"
-fp = h5py.File(outputFile, 'r')
-tracking.generateLabelImages(fp,outputDir+'/segmentation/tracking')
-fp.flush(), fp.close()
-comm.Barrier()
+#if (rank==0):
+    #print "Generating images with labelled particles"
+#fp = h5py.File(outputFile, 'r')
+#tracking.generateLabelImages(fp,outputDir+'/segmentation/tracking')
+#fp.flush(), fp.close()
+#comm.Barrier()
 #######################################################################
 
 
@@ -312,61 +312,61 @@ comm.Barrier()
 #######################################################################
 # FINDING OUT THE MEASURES FOR TRACKED PARTICLES
 ########################################################################
-#if (rank==0):
-    #print "Finding measures for tracked particles"
+if (rank==0):
+    print "Finding measures for tracked particles"
 
-#fp = h5py.File(outputFile, 'r')
-#[row,col,numFrames,frameList] = misc.getVitals(fp)
-#particleList = fp.attrs['particleList']
-#zfillVal = fp.attrs['zfillVal']
-#procFrameList = numpy.array_split(frameList,size)
-#fps = fp.attrs['fps']
-#pixInNM = fp.attrs['pixInNM']
+fp = h5py.File(outputFile, 'r')
+[row,col,numFrames,frameList] = misc.getVitals(fp)
+particleList = fp.attrs['particleList']
+zfillVal = fp.attrs['zfillVal']
+procFrameList = numpy.array_split(frameList,size)
+fps = fp.attrs['fps']
+pixInNM = fp.attrs['pixInNM']
 
-#outFile = open(str(rank)+'.dat','wb')
+outFile = open(str(rank)+'.dat','wb')
 
-##particleList = [1,2]
+#particleList = [1,2]
 
-#area=True
-#perimeter=True
-#circularity=False
-#pixelList=False
-#bdryPixelList=False
-#centroid=True
-#intensityList=False
-#sumIntensity=False
-#effRadius=False
-#radius=False
-#circumRadius=False
-#inRadius=False
-#radiusOFgyration=False
-#orientation=True
+area=True
+perimeter=True
+circularity=False
+pixelList=False
+bdryPixelList=False
+centroid=True
+intensityList=False
+sumIntensity=False
+effRadius=False
+radius=False
+circumRadius=False
+inRadius=False
+radiusOFgyration=False
+orientation=True
 
-#for frame in procFrameList[rank]:
-    #labelImg = fp['/segmentation/labelStack/'+str(frame).zfill(zfillVal)].value
-    #gImgRaw = fp['/dataProcessing/gImgRawStack/'+str(frame).zfill(zfillVal)].value
-    #outFile.write("%f " %(1.0*frame/fps))
-    #for particle in particleList:
-        #bImg = labelImg==particle
-        #if (bImg.max() == True):
-            #label, numLabel, dictionary = imageProcess.regionProps(bImg, gImgRaw, structure=structure, centroid=centroid, area=area, perimeter=perimeter,orientation=orientation)
-            #outFile.write("%f %f %f %f %f " %(dictionary['centroid'][0][1]*pixInNM, (row-dictionary['centroid'][0][0])*pixInNM, dictionary['area'][0]*pixInNM*pixInNM, dictionary['perimeter'][0]*pixInNM, dictionary['orientation'][0]))
-        #else:
-            #outFile.write("nan nan nan nan nan ")
-    #outFile.write("\n")
-#outFile.close()
-#fp.flush(), fp.close()
-#comm.Barrier()
+for frame in procFrameList[rank]:
+    labelImg = fp['/segmentation/labelStack/'+str(frame).zfill(zfillVal)].value
+    gImgRaw = fp['/dataProcessing/gImgRawStack/'+str(frame).zfill(zfillVal)].value
+    outFile.write("%f " %(1.0*frame/fps))
+    for particle in particleList:
+        bImg = labelImg==particle
+        if (bImg.max() == True):
+            label, numLabel, dictionary = imageProcess.regionProps(bImg, gImgRaw, structure=structure, centroid=centroid, area=area, perimeter=perimeter,orientation=orientation)
+            outFile.write("%f %f %f %f %f " %(dictionary['centroid'][0][1]*pixInNM, (row-dictionary['centroid'][0][0])*pixInNM, dictionary['area'][0]*pixInNM*pixInNM, dictionary['perimeter'][0]*pixInNM, dictionary['orientation'][0]))
+        else:
+            outFile.write("nan nan nan nan nan ")
+    outFile.write("\n")
+outFile.close()
+fp.flush(), fp.close()
+comm.Barrier()
 
-#if (rank==0):
-    #for r in range(size):
-        #if (r==0):
-            #measures = numpy.loadtxt(str(r)+'.dat')
-        #else:
-            #measures = numpy.row_stack((measures,numpy.loadtxt(str(r)+'.dat')))
-        #fileIO.delete(str(r)+'.dat')
-    #measures = measures[numpy.argsort(measures[:,0])]
-    #numpy.savetxt(outputDir+'/imgDataNM.dat', measures, fmt='%.6f')
+if (rank==0):
+    for r in range(size):
+        if (r==0):
+            measures = numpy.loadtxt(str(r)+'.dat')
+        else:
+            measures = numpy.row_stack((measures,numpy.loadtxt(str(r)+'.dat')))
+        fileIO.delete(str(r)+'.dat')
+    measures = measures[numpy.argsort(measures[:,0])]
+    numpy.savetxt(outputDir+'/imgDataNM.dat', measures, fmt='%.6f')
 #######################################################################
 
 

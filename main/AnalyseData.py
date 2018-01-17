@@ -13,12 +13,12 @@ import myCythonFunc
 
 
 #########################################################
-inputDir = r'W:\geeta\Overgrowth\High Temperature\20170106-017'
-fileName = r'W:\geeta\Overgrowth\High Temperature\20170106-017\output\imgDataNM.dat'
+inputDir = r'W:\geeta\Overgrowth\Low Temperature\20170629-003'
+fileName = r'W:\geeta\Overgrowth\Low Temperature\20170629-003\output\imgDataNM.dat'
 outputDir = inputDir
-gImg = cv2.imread(r'W:\geeta\Overgrowth\High Temperature\20170106-017\output\dataProcessing\gImgRawStack\000001.png',0)
+gImg = cv2.imread(r'W:\geeta\Overgrowth\Low Temperature\20170629-003\output\dataProcessing\gImgRawStack\000001.png',0)
 imgRow, imgCol = gImg.shape
-pixInNM = 0.26345214
+pixInNM = 0.53283203
 skiprows=0
 measureInPix=False
 #########################################################
